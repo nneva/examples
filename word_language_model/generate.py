@@ -65,44 +65,30 @@ with open(args.outf, 'w') as outf:
             input_words = input_words.split() if " " in input_words else [input_words]
             input_length = len(input_words)
 
-            if input_length > 1:
-                not_in_vocab = [word for word in input_words if word not in corpus.dictionary.word2idx.keys()]
-
-                if not_in_vocab != []:
-                    print(f"Word(s): '{', '.join(not_in_vocab)}' not in a vocabulary. Please try again with different word(s)!")
-                    sys.exit()
-                        
-                in_vocab = [word for word in input_words if word in corpus.dictionary.word2idx.keys()]  
-                    
-            else:
-                word = ''.join(input_words)
-
-                if word not in corpus.dictionary.word2idx.keys():
-                    print(f"Word: '{word}' not in a vocabulary. Please try again with a different word!")
-                    sys.exit()
-
-                in_vocab = word
-
+            for word in input_words:
+                assert word in corpus.dictionary.word2idx.keys(), \
+                f"\033[92mWord '{word}' not in a vocabulary. Please try again with a different word(s)! Example words: Dorian, frowned, Basil, you.\033[0m"
+    
         for i in range(input_length if args.input else 0, args.words):
 
-            if args.input and i <= input_length:
-                word = in_vocab 
+            if args.input and i == input_length:
                 idx = 0
 
                 while True:
-                    word = in_vocab if input_length == 1 else in_vocab[idx]
+                    word = input_words[idx]
                     word_idx = corpus.dictionary.word2idx[word]
                     input = torch.Tensor([[word_idx]]).long().to(device)
                     output, hidden = model(input, hidden)
 
                     outf.write(word + ('\n' if i % 20 == 19 else ' '))
                     idx += 1
+                    
                     if idx == input_length:
                         break
 
             output, hidden = model(input, hidden) 
             word_weights = output.squeeze().div(args.temperature).exp().cpu()
-            word_idx = torch.multinomial(word_weights, 1)[0] if not args.input or i >= input_length else word_idx
+            word_idx = torch.multinomial(word_weights, 1)[0] 
             input.fill_(word_idx)
 
             word = corpus.dictionary.idx2word[word_idx]
@@ -110,6 +96,5 @@ with open(args.outf, 'w') as outf:
 
             if i % args.log_interval == 0:
                 print('| Generated {}/{} words'.format(i, args.words))
-            
                 
 
