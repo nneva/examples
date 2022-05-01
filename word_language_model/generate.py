@@ -7,7 +7,6 @@
 import argparse
 import data
 import torch
-import sys
 
 parser = argparse.ArgumentParser(description='PyTorch Wikitext-2 Language Model')
 # Model parameters.
@@ -63,28 +62,24 @@ with open(args.outf, 'w') as outf:
         else:
             input_words = args.input
             input_words = input_words.split() if " " in input_words else [input_words]
-            input_length = len(input_words)
+            input_length = len(input_words) 
+
+            assert input_length > 0, f"\033[92mEmpty input. Please enter word(s)! Example words: Dorian, frowned, Basil, you.\033[0m"
 
             for word in input_words:
                 assert word in corpus.dictionary.word2idx.keys(), \
-                f"\033[92mWord '{word}' not in a vocabulary. Please try again with a different word(s)! Example words: Dorian, frowned, Basil, you.\033[0m"
+                f"\033[92mWord '{word}' not in a vocabulary. Please try again with different word(s)! Example words: Dorian, frowned, Basil, you.\033[0m"
     
         for i in range(input_length if args.input else 0, args.words):
 
-            if args.input and i == input_length:
-                idx = 0
-
-                while True:
+            if args.input:
+                for idx in range(input_length):
                     word = input_words[idx]
                     word_idx = corpus.dictionary.word2idx[word]
                     input = torch.Tensor([[word_idx]]).long().to(device)
                     output, hidden = model(input, hidden)
 
                     outf.write(word + ('\n' if i % 20 == 19 else ' '))
-                    idx += 1
-                    
-                    if idx == input_length:
-                        break
 
             output, hidden = model(input, hidden) 
             word_weights = output.squeeze().div(args.temperature).exp().cpu()
