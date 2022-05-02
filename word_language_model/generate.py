@@ -26,7 +26,7 @@ parser.add_argument('--temperature', type=float, default=1.0,
                     help='temperature - higher will increase diversity')
 parser.add_argument('--log-interval', type=int, default=100,
                     help='reporting interval')
-parser.add_argument('--input', type=str, default=None,
+parser.add_argument('--input', default=None,
                     help='Specify words for generation to start from.')
 args = parser.parse_args()
 
@@ -54,8 +54,10 @@ if not is_transformer_model:
 
 
 with open(args.outf, 'w') as outf:
-    with torch.no_grad():  # no tracking history
+    # no tracking history
+    with torch.no_grad():  
 
+        # Start of the modified code. 
         if not args.input:
             input = torch.randint(ntokens, (1, 1), dtype=torch.long).to(device)
 
@@ -64,22 +66,30 @@ with open(args.outf, 'w') as outf:
             input_words = input_words.split() if " " in input_words else [input_words]
             input_length = len(input_words) 
 
-            assert input_length > 0, f"\033[92mEmpty input. Please enter word(s)! Example words: Dorian, frowned, Basil, you.\033[0m"
+            # Assertion in case " " is provided as input, aka. covering myself for line 66. :)
+            assert input_length > 0, f"\033[92mEmpty input. Please enter word(s)! Example words: I, you, know.\033[0m"
 
             for word in input_words:
+                # A little longer line, it breakes very ugly in the output otherwise.
                 assert word in corpus.dictionary.word2idx.keys(), \
-                f"\033[92mWord '{word}' not in a vocabulary. Please try again with different word(s)! Example words: Dorian, frowned, Basil, you.\033[0m"
+                f"\033[92mWord '{word}' not in a vocabulary. Please try again with different word(s)! Example words: I, you, know.\033[0m"
     
         for i in range(input_length if args.input else 0, args.words):
 
-            if args.input:
-                for idx in range(input_length):
+            if args.input and i == input_length:
+                idx = 0
+
+                while True:
                     word = input_words[idx]
                     word_idx = corpus.dictionary.word2idx[word]
                     input = torch.Tensor([[word_idx]]).long().to(device)
                     output, hidden = model(input, hidden)
 
                     outf.write(word + ('\n' if i % 20 == 19 else ' '))
+                    idx += 1
+
+                    if idx == input_length:
+                        break
 
             output, hidden = model(input, hidden) 
             word_weights = output.squeeze().div(args.temperature).exp().cpu()
