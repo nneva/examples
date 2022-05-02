@@ -26,7 +26,7 @@ parser.add_argument('--temperature', type=float, default=1.0,
                     help='temperature - higher will increase diversity')
 parser.add_argument('--log-interval', type=int, default=100,
                     help='reporting interval')
-parser.add_argument('--input', default=None,
+parser.add_argument('--input', type=str, default=None,
                     help='Specify words for generation to start from.')
 args = parser.parse_args()
 
@@ -63,7 +63,7 @@ with open(args.outf, 'w') as outf:
 
         else:
             input_words = args.input
-            input_words = input_words.split() if " " in input_words else [input_words]
+            input_words = input_words.split()
             input_length = len(input_words) 
 
             # Assertion in case " " is provided as input, aka. covering myself for line 66. :)
