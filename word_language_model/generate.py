@@ -62,11 +62,10 @@ with open(args.outf, 'w') as outf:
             input = torch.randint(ntokens, (1, 1), dtype=torch.long).to(device)
 
         else:
-            input_words = args.input
-            input_words = input_words.split()
+            input_words = args.input.split()
             input_length = len(input_words) 
 
-            # Assertion in case " " is provided as input, aka. covering myself for line 66. :)
+            # Assertion in case " " is provided as input, aka. covering myself for line 65. :)
             assert input_length > 0, f"\033[92mEmpty input. Please enter word(s)! Example words: I, you, know.\033[0m"
 
             for word in input_words:
