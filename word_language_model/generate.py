@@ -26,8 +26,8 @@ parser.add_argument('--temperature', type=float, default=1.0,
                     help='temperature - higher will increase diversity')
 parser.add_argument('--log-interval', type=int, default=100,
                     help='reporting interval')
-parser.add_argument('--input', type=str, default=None,
-                    help='Specify words for generation to start from.')
+parser.add_argument('--input', type=bool, default=False,
+                    help='whether to start generationn from the word(s) of choice or randomly')
 args = parser.parse_args()
 
 # Set the random seed manually for reproducibility.
@@ -62,10 +62,11 @@ with open(args.outf, 'w') as outf:
             input = torch.randint(ntokens, (1, 1), dtype=torch.long).to(device)
 
         else:
-            input_words = args.input.split()
+            input_words = input("Please specifiy words to start generation from: ")
+            input_words = input_words.split()
             input_length = len(input_words) 
 
-            # Assertion in case " " is provided as input, aka. covering myself for line 65. :)
+            # Assertion in case " " is provided as input.
             assert input_length > 0, f"\033[92mEmpty input. Please enter word(s)! Example words: I, you, know.\033[0m"
 
             for word in input_words:
